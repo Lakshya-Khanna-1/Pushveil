@@ -1,0 +1,46 @@
+[package]
+name = "pushveil"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "A fast, local pre-push secret scanner for every Git repository"
+license = "MIT"
+repository = "https://github.com/Lakshya-Khanna-1/Pushveil"
+homepage = "https://github.com/Lakshya-Khanna-1/Pushveil"
+readme = "README.md"
+keywords = ["git", "secrets", "security", "pre-push", "api-keys"]
+categories = ["command-line-utilities", "development-tools"]
+
+[[bin]]
+name = "pushveil"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+bytecount = "0.6"
+clap = { version = "4.5", features = ["derive"] }
+dirs = "6.0"
+globset = "0.4"
+regex = "1.11"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.9"
+
+[dev-dependencies]
+assert_cmd = "2.0"
+predicates = "3.1"
+tempfile = "3.20"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "warn"
+pedantic = "warn"
+nursery = "warn"

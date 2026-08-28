@@ -1,0 +1,34 @@
+name: Bug report
+description: Report incorrect behavior or a false positive without including real secrets.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Never include a real credential. Use a synthetic value with the same structure.
+  - type: input
+    id: version
+    attributes:
+      label: Pushveil version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Operating system and Git version
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened?
+      description: Include sanitized output and reproduction steps.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true

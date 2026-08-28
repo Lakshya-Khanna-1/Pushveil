@@ -31,6 +31,10 @@ git push
 
 The `install` command configures protection for every existing and future repository used by the current operating-system user. `doctor` confirms that the binary, pre-push hook, and global Git routing are active.
 
+## Complete documentation
+
+Read the [Pushveil documentation book](docs/README.md) for installation, command reference, configuration recipes, detection rules, Git history coverage, AI-agent workflows, Git LFS and binary handling, remediation, troubleshooting, enterprise deployment, security architecture, development, testing, and release operations. The full chapter navigation is in [docs/SUMMARY.md](docs/SUMMARY.md).
+
 It has no daemon, account, network service, telemetry, or language runtime. Git starts it only when a hook is needed.
 
 ```text

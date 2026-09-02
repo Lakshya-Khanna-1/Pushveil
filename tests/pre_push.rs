@@ -12,6 +12,56 @@ struct TestRepository {
     global_config: PathBuf,
 }
 
+#[test]
+fn global_install_does_not_break_later_git_init() {
+    let temp = tempfile::tempdir().unwrap();
+    let program_home = temp.path().join("program-home");
+    let global_config = temp.path().join("global.gitconfig");
+
+    let configured = |program: &str| {
+        let mut command = Command::new(program);
+        command
+            .current_dir(temp.path())
+            .env("PUSHVEIL_HOME", &program_home)
+            .env("GIT_CONFIG_GLOBAL", &global_config)
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .env("NO_COLOR", "1");
+        command
+    };
+
+    let mut install = configured(env!("CARGO_BIN_EXE_pushveil"));
+    let install = install.arg("install").output().unwrap();
+    assert!(
+        install.status.success(),
+        "{}",
+        String::from_utf8_lossy(&install.stderr)
+    );
+
+    let bare = temp.path().join("remote.git");
+    let mut init_bare = configured("git");
+    let init_bare = init_bare
+        .args(["init", "--bare", bare.to_str().unwrap()])
+        .output()
+        .unwrap();
+    assert!(
+        init_bare.status.success(),
+        "bare git init failed after installation:\n{}",
+        String::from_utf8_lossy(&init_bare.stderr)
+    );
+
+    let work = temp.path().join("work");
+    let mut init_work = configured("git");
+    let init_work = init_work
+        .args(["init", "--initial-branch=main", work.to_str().unwrap()])
+        .output()
+        .unwrap();
+    assert!(
+        init_work.status.success(),
+        "working-tree git init failed after installation:\n{}",
+        String::from_utf8_lossy(&init_work.stderr)
+    );
+}
+
 impl TestRepository {
     fn new() -> Self {
         let temp = tempfile::tempdir().unwrap();

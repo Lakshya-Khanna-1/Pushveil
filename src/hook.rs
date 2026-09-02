@@ -77,7 +77,7 @@ fn is_override_confirmation(value: &str) -> bool {
 }
 
 fn run_chained_hook(hook_name: &str, args: &[OsString], input: Option<&[u8]>) -> Result<u8> {
-    let Some(path) = chained_hook_path(hook_name)? else {
+    let Some(path) = chained_hook_path(hook_name) else {
         return Ok(0);
     };
     if !path.is_file() || !is_executable_hook(&path)? {
@@ -110,14 +110,36 @@ fn run_chained_hook(hook_name: &str, args: &[OsString], input: Option<&[u8]>) ->
         .map_or(1, |code| u8::try_from(code).unwrap_or(1)))
 }
 
-fn chained_hook_path(hook_name: &str) -> Result<Option<PathBuf>> {
+fn chained_hook_path(hook_name: &str) -> Option<PathBuf> {
     if let Ok(state) = install::load_state() {
         if let Some(previous) = state.previous_hooks_path {
-            return Ok(Some(resolve_previous_path(&previous).join(hook_name)));
+            return Some(resolve_previous_path(&previous).join(hook_name));
         }
     }
-    let git = Git::discover()?;
-    Ok(Some(git.git_dir()?.join("hooks").join(hook_name)))
+
+    // Git invokes some hooks while a repository is still being initialized. In
+    // that phase `git rev-parse` can fail even though GIT_DIR already identifies
+    // where repository-local hooks belong. Prefer that environment value, and
+    // otherwise fail open for passive hook forwarding when no repository exists.
+    if let Some(git_dir) = std::env::var_os("GIT_DIR") {
+        let git_dir = PathBuf::from(git_dir);
+        let git_dir = if git_dir.is_absolute() {
+            git_dir
+        } else {
+            std::env::current_dir()
+                .unwrap_or_else(|_| PathBuf::from("."))
+                .join(git_dir)
+        };
+        return Some(git_dir.join("hooks").join(hook_name));
+    }
+
+    let Ok(git) = Git::discover() else {
+        return None;
+    };
+    let Ok(git_dir) = git.git_dir() else {
+        return None;
+    };
+    Some(git_dir.join("hooks").join(hook_name))
 }
 
 fn resolve_previous_path(value: &str) -> PathBuf {
